@@ -1,0 +1,23 @@
+{
+    "name": "Aura Cooking",
+    "short_name": "Aura Cooking",
+    "description": "Weekly Recipe Planner and Grocery List Generator",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#fdfcdc",
+    "theme_color": "#f07167",
+    "icons": [
+        {
+            "src": "./src/assets/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "./src/assets/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
