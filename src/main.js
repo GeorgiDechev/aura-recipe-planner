@@ -272,6 +272,8 @@ function switchView(target) {
         renderPlanner();
     } else if (target === 'grocery') {
         renderGroceryList();
+    } else if (target === 'cooking') {
+        renderCookingSelector();
     }
 }
 
@@ -556,9 +558,32 @@ function renderGroceryList() {
     });
 }
 
+function renderCookingSelector() {
+    const select = document.getElementById('cooking-recipe-select');
+    if (!select) return;
+
+    let html = `<option value="">-- Choose a Recipe to Cook --</option>`;
+    state.recipes.forEach(r => {
+        html += `<option value="${r.id}">${r.title}</option>`;
+    });
+
+    // Maintain selected value if it exists, otherwise empty
+    const currentVal = select.value;
+    select.innerHTML = html;
+    if (currentVal && state.recipes.find(r => r.id === currentVal)) {
+        select.value = currentVal;
+    }
+}
+
 function openCookingMode(id) {
     const recipe = state.recipes.find(r => r.id === id);
     if (!recipe) return;
+
+    const select = document.getElementById('cooking-recipe-select');
+    if (select) {
+        renderCookingSelector();
+        select.value = id;
+    }
 
     const container = document.getElementById('cooking-container');
 
@@ -632,6 +657,15 @@ function openCookingMode(id) {
 // ==========================================================================
 // Initialization
 // ==========================================================================
+
+document.getElementById('cooking-recipe-select').addEventListener('change', (e) => {
+    if (e.target.value) {
+        openCookingMode(e.target.value);
+    } else {
+        document.getElementById('cooking-container').innerHTML = `<p class="empty-state">Select a recipe from the dropdown above to start cooking!</p>`;
+    }
+});
+
 function init() {
     switchView(state.currentView);
 }
