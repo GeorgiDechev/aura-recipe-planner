@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aura-cooking-v1';
+const CACHE_NAME = 'aura-cooking-v2';
 const ASSETS = [
     './',
     './index.html',
