@@ -200,7 +200,8 @@ const defaultState = {
         Saturday: { breakfast: null, lunch: null, dinner: null, scales: { breakfast: 2, lunch: 2, dinner: 2 } },
         Sunday: { breakfast: null, lunch: null, dinner: null, scales: { breakfast: 2, lunch: 2, dinner: 2 } },
     },
-    groceryList: []
+    groceryList: [],
+    hiddenGroceries: []
 };
 
 let state = defaultState;
@@ -215,8 +216,17 @@ if (savedState) {
         // Populate if empty (first time load after update)
         if (!state.recipes || state.recipes.length === 0) {
             state.recipes = initialRecipes;
-            saveState(); // Ensure they are saved locally immediately
         }
+
+        // Ensure existing recipes have an audience tag
+        state.recipes.forEach(r => {
+            if (!r.audience) {
+                if (r.id.startsWith("toddler")) r.audience = "Toddlers";
+                else if (r.id.startsWith("couple")) r.audience = "Couples";
+                else r.audience = "Everyone";
+            }
+        });
+        saveState(); // Ensure they are saved locally immediately
     } catch (e) {
         console.error("Failed to parse saved recipe state", e);
     }
@@ -294,6 +304,7 @@ const recipeForm = document.getElementById('recipe-form');
 document.getElementById('add-recipe-btn').addEventListener('click', () => {
     recipeForm.reset();
     document.getElementById('entry-id').value = '';
+    document.getElementById('entry-audience').value = 'Everyone';
     document.getElementById('modal-title').textContent = 'Add New Recipe';
     recipeModal.style.display = 'flex';
 });
@@ -309,6 +320,7 @@ recipeForm.addEventListener('submit', (e) => {
     const recipe = {
         id: id,
         title: document.getElementById('entry-title').value,
+        audience: document.getElementById('entry-audience').value,
         image: document.getElementById('entry-image').value,
         ingredients: document.getElementById('entry-ingredients').value.split('\n').filter(i => i.trim() !== ''),
         instructions: document.getElementById('entry-instructions').value,
@@ -382,6 +394,7 @@ function renderRecipes() {
     list.style.display = 'grid';
     list.innerHTML = state.recipes.map(recipe => `
         <div class="recipe-card" data-id="${recipe.id}">
+            <div class="recipe-badge">${recipe.audience || 'Everyone'}</div>
             <img class="recipe-img" src="${recipe.image || 'data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1 1\"></svg>'}" alt="${recipe.title}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 1 1\\'></svg>'">
             <div class="recipe-info">
                 <div class="recipe-title">${recipe.title}</div>
@@ -505,7 +518,9 @@ function renderGroceryList() {
                         }
 
                         // Push with a unique key to allow combining later if we want
-                        allIngredients.push({ text: scaledIng, original: ing });
+                        if (!state.hiddenGroceries || !state.hiddenGroceries.includes(scaledIng)) {
+                            allIngredients.push({ text: scaledIng, original: ing });
+                        }
                     });
                 }
             }
@@ -663,6 +678,45 @@ document.getElementById('cooking-recipe-select').addEventListener('change', (e) 
         openCookingMode(e.target.value);
     } else {
         document.getElementById('cooking-container').innerHTML = `<p class="empty-state">Select a recipe from the dropdown above to start cooking!</p>`;
+    }
+});
+
+document.getElementById('btn-clear-planner').addEventListener('click', () => {
+    if (confirm("Are you sure you want to completely clear your week's meals?")) {
+        state.planner = {
+            Monday: { breakfast: null, lunch: null, dinner: null, scales: { breakfast: 2, lunch: 2, dinner: 2 } },
+            Tuesday: { breakfast: null, lunch: null, dinner: null, scales: { breakfast: 2, lunch: 2, dinner: 2 } },
+            Wednesday: { breakfast: null, lunch: null, dinner: null, scales: { breakfast: 2, lunch: 2, dinner: 2 } },
+            Thursday: { breakfast: null, lunch: null, dinner: null, scales: { breakfast: 2, lunch: 2, dinner: 2 } },
+            Friday: { breakfast: null, lunch: null, dinner: null, scales: { breakfast: 2, lunch: 2, dinner: 2 } },
+            Saturday: { breakfast: null, lunch: null, dinner: null, scales: { breakfast: 2, lunch: 2, dinner: 2 } },
+            Sunday: { breakfast: null, lunch: null, dinner: null, scales: { breakfast: 2, lunch: 2, dinner: 2 } },
+        };
+        state.groceryList = [];
+        state.hiddenGroceries = [];
+        saveState();
+        if (state.currentView === 'planner') renderPlanner();
+        if (state.currentView === 'grocery') renderGroceryList();
+    }
+});
+
+document.getElementById('btn-clear-groceries').addEventListener('click', () => {
+    if (confirm("Remove all checked-off items from the list? Unchecked items will remain.")) {
+        if (!state.hiddenGroceries) state.hiddenGroceries = [];
+
+        // Move all currently checked items into the hidden array
+        if (state.groceryList) {
+            state.groceryList.forEach(item => {
+                if (!state.hiddenGroceries.includes(item)) {
+                    state.hiddenGroceries.push(item);
+                }
+            });
+        }
+
+        // Clear the checked list state
+        state.groceryList = [];
+        saveState();
+        if (state.currentView === 'grocery') renderGroceryList();
     }
 });
 

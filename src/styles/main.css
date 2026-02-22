@@ -268,6 +268,19 @@ h2 {
     transition: transform var(--transition-fast);
 }
 
+.recipe-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: var(--accent-primary);
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+}
+
 .recipe-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-md);
